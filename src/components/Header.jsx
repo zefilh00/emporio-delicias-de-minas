@@ -9,10 +9,23 @@ import logo from "../assets/logo.png";
 export default function Header() {
   const [open, setOpen] = useState(false);
 
+  const links = [
+    {
+      nome: "Início",
+      link: "/",
+    },
+    {
+      nome: "Produtos",
+      link: "/produtos",
+    },
+    {
+      nome: "Contato",
+      link: "/contato",
+    },
+  ];
+
   return (
     <>
-      {/* Overlay */}
-
       <div
         onClick={() => setOpen(false)}
         className={`
@@ -26,30 +39,26 @@ export default function Header() {
         `}
       />
 
-      {/* Header */}
-
       <header className="fixed top-0 left-0 w-full z-50">
 
-        <div className="backdrop-blur-xl bg-[#471411]/70 border-b border-[#ffffff15]">
+        <div className="bg-[#471411]/95 backdrop-blur-md border-b border-[#ffffff10] shadow-xl">
 
-          <div className="max-w-7xl mx-auto h-20 px-6 lg:px-8 flex items-center justify-between">
-
-            {/* Logo */}
+          <div className="max-w-7xl mx-auto h-24 px-6 lg:px-8 flex items-center justify-between">
 
             <Link
               to="/"
-              className="flex items-center gap-3 group"
+              className="flex items-center gap-4 group"
             >
               <img
                 src={logo}
-                alt="Empório"
-                className="w-12 transition duration-300 group-hover:rotate-6"
+                alt="Empório Delícias de Minas"
+                className="w-14 md:w-16 transition-all duration-300 group-hover:rotate-6 group-hover:scale-110"
               />
 
               <div>
 
                 <h1
-                  className="text-[#E8C9A7] text-3xl leading-none"
+                  className="text-[#E8C9A7] text-4xl leading-none"
                   style={{
                     fontFamily: "Cormorant Garamond",
                   }}
@@ -57,7 +66,7 @@ export default function Header() {
                   EMPÓRIO
                 </h1>
 
-                <span className="uppercase tracking-[4px] text-[10px] text-[#D4B483]">
+                <span className="uppercase tracking-[4px] text-xs text-[#D4B483]">
                   Delícias de Minas
                 </span>
 
@@ -65,32 +74,18 @@ export default function Header() {
 
             </Link>
 
-            {/* Desktop */}
-
             <nav className="hidden md:flex items-center gap-10">
 
-              {[
-                {
-                  nome: "Início",
-                  link: "/",
-                },
-                {
-                  nome: "Produtos",
-                  link: "/produtos",
-                },
-                {
-                  nome: "Contato",
-                  link: "/contato",
-                },
-              ].map((item) => (
+              {links.map((item) => (
                 <Link
                   key={item.nome}
                   to={item.link}
                   className="
                     relative
-                    text-[#f5ede6]
+                    text-[#F5EDE6]
                     font-medium
-                    transition
+                    transition-all
+                    duration-300
                     hover:text-[#D4B483]
 
                     after:absolute
@@ -100,6 +95,7 @@ export default function Header() {
                     after:w-0
                     after:bg-[#D4B483]
                     after:transition-all
+                    after:duration-300
 
                     hover:after:w-full
                   "
@@ -110,8 +106,6 @@ export default function Header() {
 
             </nav>
 
-            {/* Botão Mobile */}
-
             <button
               onClick={() => setOpen(!open)}
               className="
@@ -119,6 +113,7 @@ export default function Header() {
                 text-[#E8C9A7]
                 text-4xl
                 transition
+                duration-300
                 hover:scale-110
               "
             >
@@ -131,8 +126,6 @@ export default function Header() {
 
       </header>
 
-      {/* Menu Mobile */}
-
       <aside
         className={`
           fixed
@@ -143,10 +136,8 @@ export default function Header() {
           bg-[#471411]
           z-50
           shadow-2xl
-
           transition-transform
           duration-500
-
           ${
             open
               ? "translate-x-0"
@@ -155,10 +146,10 @@ export default function Header() {
         `}
       >
 
-        <div className="flex items-center justify-between px-6 h-20 border-b border-[#ffffff10]">
+        <div className="flex items-center justify-between px-6 h-24 border-b border-[#ffffff10]">
 
           <span
-            className="text-[#E8C9A7] text-2xl"
+            className="text-[#E8C9A7] text-3xl"
             style={{
               fontFamily: "Cormorant Garamond",
             }}
@@ -177,20 +168,7 @@ export default function Header() {
 
         <nav className="flex flex-col mt-8">
 
-          {[
-            {
-              nome: "Início",
-              link: "/",
-            },
-            {
-              nome: "Produtos",
-              link: "/produtos",
-            },
-            {
-              nome: "Contato",
-              link: "/contato",
-            },
-          ].map((item) => (
+          {links.map((item) => (
             <Link
               key={item.nome}
               to={item.link}
@@ -201,6 +179,7 @@ export default function Header() {
                 text-[#F5EDE6]
                 text-lg
                 transition-all
+                duration-300
                 hover:bg-[#D4B483]
                 hover:text-[#471411]
               "
