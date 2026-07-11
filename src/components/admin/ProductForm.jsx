@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
-import { FaSave, FaPlus, FaTimes, FaImage, FaEdit } from "react-icons/fa";
+import {FaSave, FaPlus, FaTimes, FaImage, FaEdit,} from "react-icons/fa";
 
-export default function ProductForm({ produto = null, atualizarProdutos }) {
+export default function ProductForm({
+  produto = null,
+  atualizarProdutos,
+  cancelarEdicao,
+}) {
   const [nome, setNome] = useState("");
   const [descricao, setDescricao] = useState("");
   const [preco, setPreco] = useState("");
@@ -30,6 +34,7 @@ export default function ProductForm({ produto = null, atualizarProdutos }) {
     if (!imagem) return;
 
     const url = URL.createObjectURL(imagem);
+
     setPreview(url);
 
     return () => URL.revokeObjectURL(url);
@@ -68,8 +73,8 @@ export default function ProductForm({ produto = null, atualizarProdutos }) {
           imagem.name
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, "_")
-            .replace(/[^\w.-]/g, "");
+            .replace(/\s+/g, "-")
+            .replace(/[^a-zA-Z0-9.-]/g, "");
 
         toast.loading("Enviando imagem...", {
           id: "upload",
@@ -81,7 +86,9 @@ export default function ProductForm({ produto = null, atualizarProdutos }) {
 
         if (uploadError) throw uploadError;
 
-        imagemUrl = supabase.storage.from("produtos").getPublicUrl(nomeArquivo)
+        imagemUrl = supabase.storage
+          .from("produtos")
+          .getPublicUrl(nomeArquivo)
           .data.publicUrl;
 
         toast.success("Imagem enviada!", {
@@ -106,7 +113,9 @@ export default function ProductForm({ produto = null, atualizarProdutos }) {
           .update(dados)
           .eq("id", produto.id));
       } else {
-        ({ error } = await supabase.from("products").insert([dados]));
+        ({ error } = await supabase
+          .from("products")
+          .insert([dados]));
       }
 
       if (error) throw error;
@@ -114,244 +123,327 @@ export default function ProductForm({ produto = null, atualizarProdutos }) {
       toast.success(
         produto
           ? "Produto atualizado com sucesso!"
-          : "Produto cadastrado com sucesso!",
+          : "Produto cadastrado com sucesso!"
       );
 
       limparFormulario();
 
       atualizarProdutos();
+
+      if (produto && cancelarEdicao) {
+        cancelarEdicao();
+      }
     } catch (erro) {
       console.error(erro);
 
-      toast.error(erro.message || "Erro ao salvar produto.");
+      toast.error(
+        erro.message || "Erro ao salvar produto."
+      );
     }
 
     setLoading(false);
   }
 
-  function cancelarEdicao() {
+  function cancelar() {
     limparFormulario();
-    window.location.reload();
+
+    if (cancelarEdicao) {
+      cancelarEdicao();
+    }
   }
+
   return (
     <form
-      onSubmit={salvarProduto}
-      className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 space-y-8 border border-gray-100"
-    >
-      {produto && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-xl p-5 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-yellow-500 text-white flex items-center justify-center text-xl">
-              <FaEdit />
-            </div>
+  onSubmit={salvarProduto}
+  className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden"
+>
+  {/* Cabeçalho */}
 
-            <div>
-              <h3 className="font-bold text-yellow-800 text-xl">
-                Você está editando um produto
-              </h3>
-
-              <p className="text-yellow-700">
-                As alterações serão salvas ao clicar em
-                <strong> Atualizar Produto</strong>.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={cancelarEdicao}
-            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl transition"
-          >
-            <FaTimes />
-            Cancelar
-          </button>
-        </div>
-      )}
+  <div className="bg-[#5E1D1A] px-8 py-6">
+    <div className="flex items-center gap-4">
+      <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-white text-2xl">
+        {produto ? <FaEdit /> : <FaPlus />}
+      </div>
 
       <div>
         <h2
-          className="text-4xl text-[#5E1D1A]"
+          className="text-4xl text-white"
           style={{
             fontFamily: "Cormorant Garamond",
           }}
         >
-          {produto ? "Editar Produto" : "Cadastrar Novo Produto"}
+          {produto ? "Editar Produto" : "Cadastrar Produto"}
         </h2>
 
-        <p className="text-gray-500 mt-2">Preencha as informações abaixo.</p>
+        <p className="text-gray-200 mt-1">
+          {produto
+            ? "Altere as informações do produto."
+            : "Cadastre um novo produto para sua loja."}
+        </p>
       </div>
+    </div>
+  </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
-          <div>
-            <label className="block mb-2 font-semibold">Nome do produto</label>
+  {/* Aviso de edição */}
 
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: Queijo Canastra"
-              required
-              className="w-full rounded-xl border-2 border-gray-200 p-4 outline-none focus:border-[#5E1D1A] transition"
-            />
-          </div>
+  {produto && (
+    <div className="mx-8 mt-8 rounded-2xl bg-yellow-50 border border-yellow-300 p-5">
+      <div className="flex items-center gap-3">
+        <FaEdit className="text-yellow-600 text-xl" />
 
-          <div>
-            <label className="block mb-2 font-semibold">Descrição</label>
+        <div>
+          <h3 className="font-bold text-yellow-700">
+            Editando "{produto.nome}"
+          </h3>
 
-            <textarea
-              rows={5}
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Descrição do produto..."
-              required
-              className="w-full rounded-xl border-2 border-gray-200 p-4 outline-none focus:border-[#5E1D1A] transition resize-none"
-            />
-          </div>
+          <p className="text-yellow-600 text-sm">
+            Quando terminar clique em
+            <strong> Atualizar Produto</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+  )}
 
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="block mb-2 font-semibold">Preço</label>
+  {/* Conteúdo */}
 
-              <input
-                type="number"
-                step="0.01"
-                value={preco}
-                onChange={(e) => setPreco(e.target.value)}
-                placeholder="89.90"
-                required
-                className="w-full rounded-xl border-2 border-gray-200 p-4 outline-none focus:border-[#5E1D1A] transition"
-              />
-            </div>
+  <div className="p-8">
 
-            <div>
-              <label className="block mb-2 font-semibold">Categoria</label>
+    <div className="grid lg:grid-cols-2 gap-10">
 
-              <select
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value)}
-                required
-                className="w-full rounded-xl border-2 border-gray-200 p-4 outline-none focus:border-[#5E1D1A] transition"
-              >
-                <option value="">Selecione</option>
-                <option value="Queijos">Queijos</option>
-                <option value="Vinhos">Vinhos</option>
-                <option value="Kits">Kits</option>
-                <option value="Geleias">Geleias</option>
-                <option value="Farofas">Farofas</option>
-                <option value="Palitos">Palitos</option>
-                <option value="Outros">Outros</option>
-              </select>
-            </div>
-          </div>
+      {/* Formulário */}
+
+      <div className="space-y-6">
+
+        <div>
+
+          <label className="block font-semibold mb-2">
+            Nome do produto
+          </label>
+
+          <input
+            type="text"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Ex: Queijo Canastra"
+            required
+            className="w-full rounded-xl border-2 border-gray-200 p-4 focus:border-[#5E1D1A] outline-none transition"
+          />
+
         </div>
 
         <div>
-          <label className="block mb-2 font-semibold">Imagem</label>
 
-          <label
-            className="
-          flex
-          flex-col
-          items-center
-          justify-center
+          <label className="block font-semibold mb-2">
+            Descrição
+          </label>
+
+          <textarea
+            rows={6}
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder="Descrição do produto..."
+            required
+            className="w-full rounded-xl border-2 border-gray-200 p-4 resize-none focus:border-[#5E1D1A] outline-none transition"
+          />
+
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-5">
+
+          <div>
+
+            <label className="block font-semibold mb-2">
+              Preço
+            </label>
+
+            <input
+              type="number"
+              step="0.01"
+              value={preco}
+              onChange={(e) => setPreco(e.target.value)}
+              placeholder="89.90"
+              required
+              className="w-full rounded-xl border-2 border-gray-200 p-4 focus:border-[#5E1D1A] outline-none transition"
+            />
+
+          </div>
+
+          <div>
+
+            <label className="block font-semibold mb-2">
+              Categoria
+            </label>
+
+            <select
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+              required
+              className="w-full rounded-xl border-2 border-gray-200 p-4 focus:border-[#5E1D1A] outline-none transition"
+            >
+              <option value="">Selecione</option>
+              <option value="Queijos">Queijos</option>
+              <option value="Vinhos">Vinhos</option>
+              <option value="Kits">Kits</option>
+              <option value="Geleias">Geleias</option>
+              <option value="Farofas">Farofas</option>
+              <option value="Palitos">Palitos</option>
+              <option value="Outros">Outros</option>
+            </select>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Imagem */}
+
+      <div>
+
+        <label className="block font-semibold mb-3">
+          Imagem do produto
+        </label>
+
+        <label
+          className="
+          group
           border-2
           border-dashed
           border-gray-300
           hover:border-[#5E1D1A]
-          rounded-2xl
-          h-[350px]
+          rounded-3xl
+          h-[380px]
+          flex
+          items-center
+          justify-center
+          overflow-hidden
           cursor-pointer
           transition
-          overflow-hidden
           bg-gray-50
           "
-          >
-            {preview ? (
-              <img
-                src={preview}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="text-center text-gray-500">
-                <FaImage className="text-6xl mx-auto mb-5" />
+        >
 
-                <p className="font-semibold">
-                  Clique para selecionar uma imagem
-                </p>
+          {preview ? (
 
-                <span className="text-sm">PNG, JPG ou WEBP</span>
-              </div>
-            )}
-
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => setImagem(e.target.files[0])}
+            <img
+              src={preview}
+              alt="Preview"
+              className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
             />
-          </label>
-        </div>
+
+          ) : (
+
+            <div className="text-center">
+
+              <FaImage className="mx-auto text-6xl text-gray-400 mb-6" />
+
+              <h3 className="font-bold text-lg text-gray-700">
+                Clique para adicionar uma imagem
+              </h3>
+
+              <p className="text-gray-500 mt-2">
+                PNG • JPG • WEBP
+              </p>
+
+            </div>
+
+          )}
+
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => setImagem(e.target.files[0])}
+          />
+
+        </label>
+
       </div>
+
+    </div>
+
+    {/* Botões */}
+
+    <div className="flex flex-col sm:flex-row gap-4 mt-10">
 
       <button
         type="submit"
         disabled={loading}
         className={`
-      w-full
-      rounded-2xl
-      py-5
-      text-lg
-      font-bold
-      transition-all
-      duration-300
-      flex
-      items-center
-      justify-center
-      gap-3
+        flex-1
+        py-4
+        rounded-2xl
+        text-white
+        font-bold
+        flex
+        justify-center
+        items-center
+        gap-3
+        transition-all
+        duration-300
 
-      ${
-        produto
-          ? "bg-green-600 hover:bg-green-700 text-white"
-          : "bg-[#5E1D1A] hover:bg-[#6b211d] text-white"
-      }
+        ${
+          produto
+            ? "bg-green-600 hover:bg-green-700"
+            : "bg-[#5E1D1A] hover:bg-[#6d211d]"
+        }
 
-      hover:scale-[1.02]
-      disabled:opacity-60
-      disabled:cursor-not-allowed
-      `}
+        hover:scale-[1.02]
+        disabled:opacity-60
+        `}
       >
+
         {loading ? (
-          <>
-            <svg
-              className="animate-spin h-6 w-6"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-                opacity=".3"
-              />
-              <path
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              />
-            </svg>
-            Salvando...
-          </>
+
+          "Salvando..."
+
         ) : (
+
           <>
             {produto ? <FaSave /> : <FaPlus />}
 
-            {produto ? "Atualizar Produto" : "Cadastrar Produto"}
+            {produto
+              ? "Atualizar Produto"
+              : "Cadastrar Produto"}
           </>
+
         )}
+
       </button>
-    </form>
+
+      {produto && (
+
+        <button
+          type="button"
+          onClick={cancelar}
+          className="
+          sm:w-52
+          py-4
+          rounded-2xl
+          bg-gray-200
+          hover:bg-gray-300
+          font-semibold
+          transition
+          flex
+          items-center
+          justify-center
+          gap-3
+          "
+        >
+
+          <FaTimes />
+
+          Cancelar
+
+        </button>
+
+      )}
+
+    </div>
+
+  </div>
+
+</form>
   );
 }
