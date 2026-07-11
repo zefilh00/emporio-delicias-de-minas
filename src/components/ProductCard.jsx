@@ -70,7 +70,7 @@ export default function ProductCard({ product }) {
                         text-[#8D5A43]
                         "
                     >
-                        {product.preco}
+                        R$ {Number(product.preco).toFixed(2).replace(".", ",")}
                     </span>
 
                     <Link

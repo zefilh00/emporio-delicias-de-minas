@@ -1,12 +1,14 @@
 import Header from "../components/Header";
 import ProductCard from "../components/ProductCard";
-import { products } from "../db/products";
+import useProducts from "../hooks/useProducts";
 import hero from "../assets/hero.png";
 import { FaCheese, FaLeaf, FaAward } from "react-icons/fa";
 import Footer from "../components/Footer";
 import { Link } from "react-router-dom";
 
 export default function Home() {
+  const { products, loading } = useProducts();
+
   return (
     <>
       <Header />
@@ -36,9 +38,7 @@ export default function Home() {
                 <br />
                 sabores de Minas
                 <br />
-                <span className="text-[#D4B483]">
-                  em um só lugar.
-                </span>
+                <span className="text-[#D4B483]">em um só lugar.</span>
               </h1>
 
               <p className="mt-8 text-[#e7ddd7] text-lg leading-8">
@@ -72,9 +72,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
             <div>
               <FaCheese className="mx-auto text-5xl text-[#D4B483]" />
-              <h3 className="text-2xl text-white mt-5">
-                Produtos Artesanais
-              </h3>
+              <h3 className="text-2xl text-white mt-5">Produtos Artesanais</h3>
               <p className="text-gray-300 mt-3">
                 Seleção de produtos produzidos com tradição e qualidade.
               </p>
@@ -92,9 +90,7 @@ export default function Home() {
 
             <div>
               <FaAward className="mx-auto text-5xl text-[#D4B483]" />
-              <h3 className="text-2xl text-white mt-5">
-                Qualidade Garantida
-              </h3>
+              <h3 className="text-2xl text-white mt-5">Qualidade Garantida</h3>
               <p className="text-gray-300 mt-3">
                 Tradição, confiança e excelente atendimento.
               </p>
@@ -131,11 +127,15 @@ export default function Home() {
             </div>
 
             <div className="rounded-3xl overflow-hidden shadow-2xl">
-              <img
-                src={products[2].imagem}
-                alt="Quem Somos"
-                className="w-full h-[450px] object-cover"
-              />
+              {loading ? (
+                <div className="w-full h-[450px] rounded-3xl bg-gray-200 animate-pulse"></div>
+              ) : (
+                <img
+                  src={products.find(p => p.imagem)?.imagem}
+                  alt="Quem Somos"
+                  className="w-full h-[450px] object-cover"
+                />
+              )}
             </div>
           </div>
         </section>
@@ -163,9 +163,17 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mt-16">
-              {products.slice(0, 4).map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+              {loading ? (
+                <div className="col-span-4 text-center py-12 text-xl text-[#5E1D1A]">
+                  Carregando produtos...
+                </div>
+              ) : (
+                products
+                  .slice(0, 4)
+                  .map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))
+              )}
             </div>
 
             <div className="flex justify-center mt-14">
